@@ -117,6 +117,10 @@ section{padding:64px 0}
   background:var(--white);border:1px solid var(--line);border-radius:14px;padding:10px 10px 11px;font-size:12.5px;font-weight:600;line-height:1.3;color:var(--ink);
   box-shadow:0 14px 30px -18px rgba(6,25,15,.45);will-change:transform,filter,opacity}
 .orbit-items li svg{width:20px;height:20px;color:var(--g600);flex:none}
+.orbit-items li{transition:border-color .25s,box-shadow .25s,background-color .25s,color .25s;cursor:default;user-select:none;-webkit-tap-highlight-color:transparent}
+.orbit-items li svg{transition:transform .3s cubic-bezier(.3,1.6,.5,1),color .25s}
+.orbit-items li.is-hot{border-color:var(--g500);box-shadow:0 18px 40px -16px rgba(30,138,60,.55),0 0 0 4px rgba(47,160,79,.12);color:var(--g900)}
+.orbit-items li.is-hot svg{transform:scale(1.25) rotate(-8deg);color:var(--g500)}
 .orbit-cta{text-align:center;margin-top:8px}
 .orbit-cta .btn{width:100%;max-width:420px}
 /* Sem JS / movimento reduzido: lista estática */
@@ -672,13 +676,38 @@ footer .legal{border-top:1px solid rgba(255,255,255,.08);padding-top:16px;line-h
       ring.setAttribute('rx', rx * 0.97); ring.setAttribute('ry', ry * 0.97);
     }
 
-    let angle = 0, last = 0, running = false, hover = false, speed = 0.11; // rad/s
+    // ---- Interação com o mouse (ou toque) ----
+    let pointer = null;              // posição do cursor dentro do palco
+    let tapUntil = 0;                // no celular: o item tocado fica "aceso" por um tempo
+    const R = () => (desktop ? 240 : 150);   // raio de influência do cursor
+    const state = items.map(() => ({ ox: 0, oy: 0, heat: 0 }));
+
+    stage.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const r = stage.getBoundingClientRect();
+      pointer = { x: e.clientX - r.left, y: e.clientY - r.top };
+    });
+    stage.addEventListener('pointerleave', () => { if (Date.now() > tapUntil) pointer = null; });
+    items.forEach((li) => {
+      li.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse') return;
+        const r = stage.getBoundingClientRect(), b = li.getBoundingClientRect();
+        pointer = { x: b.left + b.width / 2 - r.left, y: b.top + b.height / 2 - r.top };
+        tapUntil = Date.now() + 1600;
+      });
+    });
+
+    let angle = 0, last = 0, running = false, speed = 0.11; // rad/s
     function frame(t) {
       if (!running) return;
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
-      if (!hover) angle += dt * speed;
+      if (pointer && tapUntil && Date.now() > tapUntil) { pointer = null; tapUntil = 0; }
+      // com o cursor na órbita, o giro desacelera (sem parar de vez)
+      speed += ((pointer ? 0.025 : 0.11) - speed) * Math.min(1, dt * 3);
+      angle += dt * speed;
       const cx = W / 2, cy = H / 2;
       const dMin = Math.min(rx, ry) * 0.9, dMax = Math.max(rx, ry);
+      const ease = Math.min(1, dt * 9);
       items.forEach((li, i) => {
         const a = angle + i * (Math.PI * 2 / N) - Math.PI / 2;
         // "respiração": cada item se afasta e se aproxima do centro no próprio ritmo
@@ -693,29 +722,44 @@ footer .legal{border-top:1px solid rgba(255,255,255,.08);padding-top:16px;line-h
           y = Math.sign(sn) * Math.pow(Math.abs(sn), 0.8) * ry * breathe;
         }
         const d = Math.hypot(x, y);
-        const near = 1 - Math.min(1, Math.max(0, (d - dMin) / (dMax - dMin))); // 1 = perto, 0 = longe
-        const blur = (1 - near) * (desktop ? 4.5 : 3.2);
-        const scale = 0.84 + near * 0.2;
+        const near = 1 - Math.min(1, Math.max(0, (d - dMin) / (dMax - dMin))); // 1 = perto do centro
+
+        // Ímã: o item é puxado em direção ao cursor e "acende"
+        const st = state[i];
+        let tx = 0, ty = 0, th = 0;
+        if (pointer) {
+          const px = pointer.x - (cx + x), py = pointer.y - (cy + y);
+          const pd = Math.hypot(px, py);
+          const f = Math.max(0, 1 - pd / R());
+          const pull = f * f * (desktop ? 0.35 : 0.2);
+          tx = px * pull; ty = py * pull; th = Math.min(1, f * 1.6);
+        }
+        st.ox += (tx - st.ox) * ease; st.oy += (ty - st.oy) * ease; st.heat += (th - st.heat) * ease;
+
+        const scale = 0.92 + near * 0.1 + st.heat * 0.12;
+        const tilt = st.ox * 0.06;
         const [w, h] = sizes[i];
-        li.style.transform = `translate(${cx + x - w / 2}px, ${cy + y - h / 2}px) scale(${scale.toFixed(3)})`;
-        li.style.filter = blur > 0.2 ? `blur(${blur.toFixed(2)}px)` : 'none';
-        li.style.opacity = (0.4 + near * 0.6).toFixed(3);
-        li.style.zIndex = Math.round(near * 10);
-        // linha: da borda do bloco central até o item
-        const ux = x / (d || 1), uy = y / (d || 1);
+        const ix = cx + x + st.ox, iy = cy + y + st.oy;
+        li.style.transform = `translate(${(ix - w / 2).toFixed(1)}px, ${(iy - h / 2).toFixed(1)}px) rotate(${tilt.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+        li.style.opacity = Math.min(1, 0.72 + near * 0.28 + st.heat).toFixed(3);
+        li.style.zIndex = st.heat > 0.05 ? 20 : Math.round(near * 10);
+        li.classList.toggle('is-hot', st.heat > 0.45);
+
+        // linha: da borda do bloco central até o item (segue o item quando ele é puxado)
+        const vx = ix - cx, vy = iy - cy, vd = Math.hypot(vx, vy) || 1;
+        const ux = vx / vd, uy = vy / vd;
         const k = Math.min(cHalfW / Math.abs(ux || 1e-6), cHalfH / Math.abs(uy || 1e-6));
         const l = lines[i];
         l.setAttribute('x1', cx + ux * k); l.setAttribute('y1', cy + uy * k);
-        l.setAttribute('x2', cx + x - ux * 18); l.setAttribute('y2', cy + y - uy * 18);
-        l.style.strokeOpacity = (0.15 + near * 0.6).toFixed(3);
+        l.setAttribute('x2', ix - ux * 18); l.setAttribute('y2', iy - uy * 18);
+        l.style.strokeOpacity = Math.min(1, 0.25 + near * 0.45 + st.heat * 0.6).toFixed(3);
+        l.style.strokeWidth = (1.5 + st.heat * 1.2).toFixed(2);
       });
       requestAnimationFrame(frame);
     }
 
     measure();
     window.addEventListener('resize', () => { measure(); });
-    stage.addEventListener('mouseenter', () => { hover = true; });
-    stage.addEventListener('mouseleave', () => { hover = false; });
 
     // Só anima quando a seção está na tela (economiza bateria no celular)
     const start = () => { if (!running) { running = true; last = 0; requestAnimationFrame(frame); } };
