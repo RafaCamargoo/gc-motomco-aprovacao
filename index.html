@@ -96,16 +96,36 @@ section{padding:64px 0}
 
 /* Revisão anual (problema + educação) */
 .revisao{background:var(--g50)}
-.revisao-grid{display:grid;gap:36px}
-.revisao-text p+p{margin-top:14px}
+.revisao-grid{display:grid;gap:8px}
 .revisao-text p{color:var(--muted)}
+.revisao-body p+p{margin-top:14px}
+.revisao-body{margin-top:10px}
 .revisao-text strong{color:var(--ink)}
-.checks-card{background:var(--white);border-radius:20px;padding:28px 22px;box-shadow:0 30px 70px -30px rgba(6,25,15,.35);border:1px solid var(--line)}
-.checks-card h3{font-size:22px;margin-bottom:6px}
-.checks-card .small{color:var(--muted);font-size:14px;margin-bottom:18px}
-.checks{list-style:none;display:grid;gap:12px;margin-bottom:24px}
-.checks li{display:flex;gap:12px;align-items:flex-start;font-size:15px;font-weight:500}
-.checks li svg{width:22px;height:22px;flex:none;color:var(--g600);margin-top:1px}
+
+/* Órbita */
+.orbit{position:relative;height:640px;margin:36px -20px 0;overflow:hidden;touch-action:pan-y}
+.orbit-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.orbit-ring{fill:none;stroke:var(--g600);stroke-opacity:.14;stroke-width:1.5;stroke-dasharray:2 7}
+.orbit-lines line{stroke:var(--g600);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:3 6;animation:flow 1.4s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-18}}
+.orbit-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:132px;text-align:center;z-index:2}
+.orbit-center::before{content:"";position:absolute;left:50%;top:50%;width:250px;height:250px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 0%,#fff 48%,rgba(255,255,255,0) 72%);z-index:-1}
+.orbit-center h3{font-size:22px;line-height:1.05;margin-bottom:8px}
+.orbit-center p{font-size:12.5px;line-height:1.45;color:var(--muted)}
+.orbit-items{list-style:none;position:absolute;inset:0;z-index:3}
+.orbit-items li{position:absolute;left:0;top:0;width:116px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;
+  background:var(--white);border:1px solid var(--line);border-radius:14px;padding:10px 10px 11px;font-size:12.5px;font-weight:600;line-height:1.3;color:var(--ink);
+  box-shadow:0 14px 30px -18px rgba(6,25,15,.45);will-change:transform,filter,opacity}
+.orbit-items li svg{width:20px;height:20px;color:var(--g600);flex:none}
+.orbit-cta{text-align:center;margin-top:8px}
+.orbit-cta .btn{width:100%;max-width:420px}
+/* Sem JS / movimento reduzido: lista estática */
+.orbit.is-static{height:auto;margin:32px 0 0;overflow:visible}
+.orbit.is-static .orbit-lines{display:none}
+.orbit.is-static .orbit-center{position:static;transform:none;width:auto;margin-bottom:18px}
+.orbit.is-static .orbit-center::before{display:none}
+.orbit.is-static .orbit-items{position:static;display:grid;gap:10px}
+.orbit.is-static .orbit-items li{position:static;width:auto;flex-direction:row;text-align:left;font-size:15px}
 
 /* Linha Motomco */
 .linha-head{display:flex;flex-direction:column;gap:6px;margin-bottom:28px}
@@ -199,8 +219,15 @@ footer .legal{border-top:1px solid rgba(255,255,255,.08);padding-top:16px;line-h
   .hero-media img{object-position:center 58%}
   .hero-media::after{background:linear-gradient(90deg,var(--g900) 0%,rgba(11,43,27,.55) 26%,rgba(11,43,27,0) 55%)}
   .hero-copy{padding:90px 0;max-width:600px}
-  .revisao-grid{grid-template-columns:1.05fr .95fr;gap:64px;align-items:center}
-  .checks-card{padding:34px 32px}
+  .revisao-grid{grid-template-columns:1fr 1fr;gap:64px;align-items:end}
+  .revisao-body{margin-top:0}
+  .orbit{height:600px;margin:40px 0 0}
+  .orbit-center{width:330px}
+  .orbit-center::before{width:440px;height:330px}
+  .orbit-center h3{font-size:38px;margin-bottom:12px}
+  .orbit-center p{font-size:16px}
+  .orbit-items li{width:220px;flex-direction:row;text-align:left;gap:10px;font-size:15px;padding:13px 16px;border-radius:999px}
+  .orbit-items li svg{width:22px;height:22px}
   .produtos{display:grid;grid-template-columns:repeat(5,1fr);overflow:visible;padding:0;margin:0}
   .produto{max-width:none}
   .scroll-hint{display:none}
@@ -298,27 +325,41 @@ footer .legal{border-top:1px solid rgba(255,255,255,.08);padding-top:16px;line-h
     </div>
   </section>
 
-  <!-- 2. POR QUE REVISAR (no lugar do formulário) -->
+  <!-- 2. POR QUE REVISAR + ÓRBITA "HORA DE REVISAR O SEU?" -->
   <section class="revisao" id="revisao">
-    <div class="wrap revisao-grid">
-      <div class="revisao-text">
-        <span class="bar" data-anim="line"></span>
-        <h2 data-anim="up" style="--d:80ms">Por que revisar o medidor todo ano?</h2>
-        <p class="lead" data-anim="up" style="--d:160ms">O medidor trabalha a safra inteira, e o desgaste não avisa.</p>
-        <p data-anim="up" style="margin-top:18px;--d:220ms">Com o uso, o transporte e o tempo, o aparelho pode começar a <strong>medir diferente do real sem dar nenhum sinal</strong>. Em grãos e algodão, um ponto de umidade errado já pesa na negociação e no recebimento.</p>
-        <p data-anim="up" style="--d:280ms">A <strong>revisão anual</strong>, feita antes da safra, confere a leitura, limpa o equipamento e troca o que estiver gasto. Assim o medidor não para no pico da colheita, quando ficar sem medição custa mais caro.</p>
+    <div class="wrap">
+      <div class="revisao-grid">
+        <div class="revisao-text">
+          <span class="bar" data-anim="line"></span>
+          <h2 data-anim="up" style="--d:80ms">Por que revisar o medidor todo ano?</h2>
+          <p class="lead" data-anim="up" style="--d:160ms">O medidor trabalha a safra inteira, e o desgaste não avisa.</p>
+        </div>
+        <div class="revisao-text revisao-body">
+          <p data-anim="up" style="--d:220ms">Com o uso, o transporte e o tempo, o aparelho pode começar a <strong>medir diferente do real sem dar nenhum sinal</strong>. Em grãos e algodão, um ponto de umidade errado já pesa na negociação e no recebimento.</p>
+          <p data-anim="up" style="--d:280ms">A <strong>revisão anual</strong>, feita antes da safra, confere a leitura, limpa o equipamento e troca o que estiver gasto. Assim o medidor não para no pico da colheita, quando ficar sem medição custa mais caro.</p>
+        </div>
       </div>
-      <div class="checks-card" data-anim="zoom" style="--d:150ms">
-        <h3>Hora de revisar o seu?</h3>
-        <p class="small">Se algum destes pontos vale para o seu medidor, fale com a assistência.</p>
-        <ul class="checks" data-stagger="up" data-stagger-start="350">
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg>Faz mais de um ano desde a última revisão</li>
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg>A mesma amostra dá leituras diferentes</li>
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg>Sua medição não bate com a do comprador ou do armazém</li>
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg>Tela, botões ou célula de medição com falha</li>
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg>A safra está chegando</li>
+
+      <div class="orbit" data-anim="zoom" style="--d:120ms">
+        <svg class="orbit-lines" aria-hidden="true">
+          <ellipse class="orbit-ring" cx="0" cy="0" rx="0" ry="0"/>
+          <line/><line/><line/><line/><line/>
+        </svg>
+        <div class="orbit-center">
+          <h3>Hora de revisar o seu?</h3>
+          <p>Se algum destes pontos vale para o seu medidor, fale com a assistência.</p>
+        </div>
+        <ul class="orbit-items">
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Mais de um ano sem revisão</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Mesma amostra, leituras diferentes</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Medição não bate com a do armazém</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Falha na tela, botões ou célula</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>A safra está chegando</span></li>
         </ul>
-        <a class="btn btn--block js-wa" data-cta="revisao" href="#">
+      </div>
+
+      <div class="orbit-cta" data-anim="up" style="--d:200ms">
+        <a class="btn js-wa" data-cta="revisao" href="#">
           <svg aria-hidden="true"><use href="#i-wa"/></svg>Verificar situação do meu medidor
         </a>
       </div>
@@ -603,6 +644,88 @@ footer .legal{border-top:1px solid rgba(255,255,255,.08);padding-top:16px;line-h
   });
 
 
+
+  // ---------- Órbita "Hora de revisar o seu?" ----------
+  (function () {
+    const stage = document.querySelector('.orbit');
+    if (!stage) return;
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { stage.classList.add('is-static'); return; }
+
+    const items = [...stage.querySelectorAll('.orbit-items li')];
+    const lines = [...stage.querySelectorAll('.orbit-lines line')];
+    const ring = stage.querySelector('.orbit-ring');
+    const center = stage.querySelector('.orbit-center');
+    const N = items.length;
+    let W = 0, H = 0, rx = 0, ry = 0, cHalfW = 0, cHalfH = 0, sizes = [], desktop = true;
+
+    function measure() {
+      W = stage.clientWidth; H = stage.clientHeight;
+      sizes = items.map((li) => [li.offsetWidth, li.offsetHeight]);
+      const iw = Math.max(...sizes.map((s) => s[0])), ih = Math.max(...sizes.map((s) => s[1]));
+      desktop = W >= 760;
+      rx = W / 2 - iw / 2 - (desktop ? 24 : 6);
+      ry = H / 2 - ih / 2 - 14;
+      if (desktop) rx = Math.min(rx, 470);
+      cHalfW = center.offsetWidth / 2 + 12; cHalfH = center.offsetHeight / 2 + 12;
+      ring.setAttribute('cx', W / 2); ring.setAttribute('cy', H / 2);
+      ring.setAttribute('rx', rx * 0.97); ring.setAttribute('ry', ry * 0.97);
+    }
+
+    let angle = 0, last = 0, running = false, hover = false, speed = 0.11; // rad/s
+    function frame(t) {
+      if (!running) return;
+      const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
+      if (!hover) angle += dt * speed;
+      const cx = W / 2, cy = H / 2;
+      const dMin = Math.min(rx, ry) * 0.9, dMax = Math.max(rx, ry);
+      items.forEach((li, i) => {
+        const a = angle + i * (Math.PI * 2 / N) - Math.PI / 2;
+        // "respiração": cada item se afasta e se aproxima do centro no próprio ritmo
+        const breathe = 0.9 + 0.1 * Math.sin(t / 1000 * 0.6 + i * 1.7);
+        let x, y;
+        if (desktop) {
+          x = Math.cos(a) * rx * breathe; y = Math.sin(a) * ry * breathe;
+        } else {
+          // Celular: órbita vertical mais "quadrada", para os itens passarem ao lado do texto sem cobri-lo
+          const c = Math.cos(a), sn = Math.sin(a);
+          x = Math.sign(c) * Math.pow(Math.abs(c), 0.4) * rx;
+          y = Math.sign(sn) * Math.pow(Math.abs(sn), 0.8) * ry * breathe;
+        }
+        const d = Math.hypot(x, y);
+        const near = 1 - Math.min(1, Math.max(0, (d - dMin) / (dMax - dMin))); // 1 = perto, 0 = longe
+        const blur = (1 - near) * (desktop ? 4.5 : 3.2);
+        const scale = 0.84 + near * 0.2;
+        const [w, h] = sizes[i];
+        li.style.transform = `translate(${cx + x - w / 2}px, ${cy + y - h / 2}px) scale(${scale.toFixed(3)})`;
+        li.style.filter = blur > 0.2 ? `blur(${blur.toFixed(2)}px)` : 'none';
+        li.style.opacity = (0.4 + near * 0.6).toFixed(3);
+        li.style.zIndex = Math.round(near * 10);
+        // linha: da borda do bloco central até o item
+        const ux = x / (d || 1), uy = y / (d || 1);
+        const k = Math.min(cHalfW / Math.abs(ux || 1e-6), cHalfH / Math.abs(uy || 1e-6));
+        const l = lines[i];
+        l.setAttribute('x1', cx + ux * k); l.setAttribute('y1', cy + uy * k);
+        l.setAttribute('x2', cx + x - ux * 18); l.setAttribute('y2', cy + y - uy * 18);
+        l.style.strokeOpacity = (0.15 + near * 0.6).toFixed(3);
+      });
+      requestAnimationFrame(frame);
+    }
+
+    measure();
+    window.addEventListener('resize', () => { measure(); });
+    stage.addEventListener('mouseenter', () => { hover = true; });
+    stage.addEventListener('mouseleave', () => { hover = false; });
+
+    // Só anima quando a seção está na tela (economiza bateria no celular)
+    const start = () => { if (!running) { running = true; last = 0; requestAnimationFrame(frame); } };
+    const stop = () => { running = false; };
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop()), { rootMargin: '100px' }).observe(stage);
+    } else start();
+    running = true; frame(performance.now()); running = false; // posiciona já no primeiro quadro
+  })();
+
   // ---------- Animações de entrada no scroll ----------
   (function () {
     const root = document.documentElement;
@@ -640,13 +763,17 @@ footer .legal{border-top:1px solid rgba(255,255,255,.08);padding-top:16px;line-h
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     items.forEach((el) => io.observe(el));
 
-    // Rede de segurança: nada fica escondido se o observer falhar
-    window.addEventListener('load', () => setTimeout(() => {
+    // Rede de segurança: tudo que já passou pela tela é revelado, mesmo com rolagem muito rápida
+    let pending = false;
+    const sweep = () => {
+      pending = false;
       items.forEach((el) => {
-        const r = el.getBoundingClientRect();
-        if (r.top < window.innerHeight && r.bottom > 0 && !el.classList.contains('is-in')) reveal(el);
+        if (el.classList.contains('is-in')) return;
+        if (el.getBoundingClientRect().top < window.innerHeight) { reveal(el); io.unobserve(el); }
       });
-    }, 1200));
+    };
+    window.addEventListener('scroll', () => { if (!pending) { pending = true; setTimeout(sweep, 250); } }, { passive: true });
+    window.addEventListener('load', () => setTimeout(sweep, 1200));
 
     function countUp(el) {
       el.dataset.done = '1';
